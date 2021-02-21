@@ -1,6 +1,5 @@
 from tkinter.constants import NO
 from matplotlib.markers import MarkerStyle
-from node_types import NodeType
 import random
 import my_constants
 import matplotlib.pyplot as plt
@@ -17,8 +16,9 @@ class NormalVessel(Node):
         super().__init__()
 
     def plot_node(self):
-        plt.scatter(self.x, self.y, s=30,
-                    facecolors='none', edgecolors='k')
+        temp = plt.scatter(self.x, self.y, s=30,
+                           facecolors='none', edgecolors='k')
+        print(temp)
 
 
 class RogueVessel(Node):
@@ -26,8 +26,7 @@ class RogueVessel(Node):
         super().__init__()
 
     def plot_node(self):
-        plt.scatter(self.x, self.y, s=30,
-                    facecolors='none', edgecolors='r')
+        plt.scatter(self.x, self.y, s=30, facecolors='r')
 
 
 class GroundStation(Node):
