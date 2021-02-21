@@ -1,0 +1,7 @@
+import enum
+
+
+class NodeType(enum.Enum):
+    GROUND_STATION = 'GROUND_STATION'
+    NORMAL_VESSEL = 'NORMAL_VESSEL'
+    ROUGE_VESSEL = 'ROUGE_VESSEL'

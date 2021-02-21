@@ -1,6 +1,6 @@
 # SMR Protocol 
 
-Major Project - B.tech CSE 2017-21 8th semester
+Major Project - B.Tech CSE 2017-21 8th semester
 
 ### Team Fluffy-Cats
 1. Naveen Sundar - 17115047
