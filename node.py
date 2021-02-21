@@ -16,9 +16,8 @@ class NormalVessel(Node):
         super().__init__()
 
     def plot_node(self):
-        temp = plt.scatter(self.x, self.y, s=30,
-                           facecolors='none', edgecolors='k')
-        print(temp)
+        plt.scatter(self.x, self.y, s=30,
+                    facecolors='none', edgecolors='k')
 
 
 class RogueVessel(Node):
