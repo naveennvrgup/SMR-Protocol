@@ -3,7 +3,7 @@ from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
 import numpy as np
 import matplotlib.pyplot as plt
-import my_constants
+from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, n, clique_dist, time_quanta
 from collections import defaultdict
 from tkinter import *
 import traceback
@@ -21,16 +21,10 @@ def main():
     global lines, time, adj, timer, clock_text
 
     # initialising graph
-    plt.axis([0, my_constants.width, 0, my_constants.height])
+    plt.axis([0, width, 0, height])
     plt.title('Team Fuffy Cats - SMR Protocol Simulation')
 
     # starting params
-    normal_vessels_count = 125
-    rouge_vessels_count = 5
-    ground_stations_count = 2
-    clique_dist = 10
-    time_quanta = 0.5
-    n = normal_vessels_count + rouge_vessels_count + ground_stations_count
 
     # create nodes
     normal_vessels = [NormalVessel() for _ in range(normal_vessels_count)]
