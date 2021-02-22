@@ -1,7 +1,6 @@
 from utils import visualise_adj
 from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
-import numpy as np
 import matplotlib.pyplot as plt
 from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer
 from collections import defaultdict
@@ -9,13 +8,35 @@ from tkinter import *
 import traceback
 import math
 
-# globals
-clock_text = None
+
+def start_simula(normal_vessels, good_vessels):
+    global timer, time_quanta
+    clock_text = None
+
+    while True:
+        print(f'----------------------{timer}------------------------')
+        broadcasts_left = sum([len(node.ready) for node in normal_vessels])
+        print(f"broadcasts left: {broadcasts_left}")
+
+        timer += time_quanta
+
+        if clock_text:
+            clock_text.remove()
+
+        for vessel in normal_vessels:
+            vessel.broadcast()
+        for vessel in normal_vessels:
+            vessel.is_broadcast_successful()
+        for vessel in good_vessels:
+            vessel.plot_lines()
+
+        clock_text = plt.text(0, 0, f'Clock: {timer}s')
+
+        # waiting time_quanta seconds until next run
+        plt.pause(time_quanta)
 
 
 def main():
-    global lines, clock_text, time_quanta, timer
-
     # initialising graph
     plt.axis([0, width, 0, height])
     plt.title('Team Fuffy Cats - SMR Protocol Simulation')
@@ -56,34 +77,15 @@ def main():
         if normal_vessels[i].ready:
             print(normal_vessels[i].ready)
 
-    # paint all then nodes
+    # paint all them nodes
     for node in all_vessels:
         node.plot_node()
 
+    # for visualising the meshnet
     # visualise_adj(plt, normal_vessels)
 
     # this never ends
-    while True:
-        print(f'----------------------{timer}------------------------')
-        broadcasts_left = sum([len(node.ready) for node in normal_vessels])
-        print(f"broadcasts left: {broadcasts_left}")
-
-        timer += time_quanta
-
-        if clock_text:
-            clock_text.remove()
-
-        for vessel in normal_vessels:
-            vessel.broadcast()
-        for vessel in normal_vessels:
-            vessel.is_broadcast_successful()
-        for vessel in good_vessels:
-            vessel.plot_lines()
-
-        clock_text = plt.text(0, 0, f'Clock: {timer}s')
-
-        # waiting time_quanta seconds until next run
-        plt.pause(time_quanta)
+    start_simula(normal_vessels, good_vessels)
 
     plt.show()
 
