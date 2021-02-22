@@ -1,5 +1,4 @@
-from tkinter import Pack
-from tkinter.constants import E, NONE
+from matplotlib import lines
 from matplotlib.markers import MarkerStyle
 import random
 from my_constants import width, height, timer
@@ -27,8 +26,9 @@ class Node:
         self.lines = []
 
     def plot_lines(self):
-        for line in self.lines:
-            line.pop().remove()
+        for _ in range(len(self.lines)):
+            plt_line = self.lines.pop()
+            plt_line.pop().remove()
 
         color = 'b-'
 
@@ -75,21 +75,11 @@ class NormalVessel(Node):
         self.neighbours = []
         self.ready = []
         self.curr_broadcast = None
+        self.broadcast_cooldown = 0
 
     def plot_node(self):
         plt.scatter(self.x, self.y, s=30,
                     facecolors='none', edgecolors='k')
-
-    def any_rogue_nearby(self):
-        for nei in self.neighbours:
-            if nei.__name__ == 'RougeVessel':
-                rouge_in_ready = False
-                for vessel in self.ready:
-                    if vessel == nei:
-                        rouge_in_ready = True
-
-                if not rouge_in_ready:
-                    self.ready.append(nei)
 
     def is_broadcast_successful(self):
         if not self.curr_broadcast:
@@ -97,11 +87,16 @@ class NormalVessel(Node):
 
         if self.curr_signals:
             self.ready.insert(0, self.curr_broadcast)
-            self.curr_broadcast = None
+            self.broadcast_cooldown = random.randint(0, 10)
             print(f'broadcast fail in {self}')
+        
+        # clear curent broadcast
+        self.curr_broadcast = None
 
     def broadcast(self):
-        if not self.ready:
+        self.broadcast_cooldown -= 1
+
+        if not self.ready or self.broadcast_cooldown > 0:
             return
 
         rogue_vessel = self.ready.pop(0)

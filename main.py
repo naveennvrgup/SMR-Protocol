@@ -64,6 +64,10 @@ def main():
 
     # this never ends
     while True:
+        print(f'----------------------{timer}------------------------')
+        broadcasts_left = sum([len(node.ready) for node in normal_vessels])
+        print(f"broadcasts left: {broadcasts_left}")
+
         timer += time_quanta
 
         if clock_text:
