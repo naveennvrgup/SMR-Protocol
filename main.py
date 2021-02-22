@@ -71,6 +71,8 @@ def main():
 
         for vessel in normal_vessels:
             vessel.broadcast()
+        for vessel in normal_vessels:
+            vessel.is_broadcast_successful()
         for vessel in good_vessels:
             vessel.plot_lines()
 

@@ -48,6 +48,9 @@ class Node:
     def recieve(self, packet: Packet):
         self.curr_signals.append(packet)
 
+    def __str__(self) -> str:
+        return f'({self.x}, {self.y})'
+
 
 class RogueVessel(Node):
     def __init__(self) -> None:
@@ -71,6 +74,7 @@ class NormalVessel(Node):
         super().__init__()
         self.neighbours = []
         self.ready = []
+        self.curr_broadcast = None
 
     def plot_node(self):
         plt.scatter(self.x, self.y, s=30,
@@ -87,6 +91,15 @@ class NormalVessel(Node):
                 if not rouge_in_ready:
                     self.ready.append(nei)
 
+    def is_broadcast_successful(self):
+        if not self.curr_broadcast:
+            return
+
+        if self.curr_signals:
+            self.ready.insert(0, self.curr_broadcast)
+            self.curr_broadcast = None
+            print(f'broadcast fail in {self}')
+
     def broadcast(self):
         if not self.ready:
             return
@@ -94,6 +107,7 @@ class NormalVessel(Node):
         rogue_vessel = self.ready.pop(0)
 
         for nei in self.neighbours:
+            self.curr_broadcast = rogue_vessel
             nei.recieve(Packet(
                 timestamp=timer,
                 found_by=self,
