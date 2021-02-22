@@ -3,70 +3,76 @@ from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
 import numpy as np
 import matplotlib.pyplot as plt
-from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, n, clique_dist, time_quanta
+from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer
 from collections import defaultdict
 from tkinter import *
 import traceback
 import math
 
-# global
-lines = None
+# globals
 clock_text = None
-time = 0
-adj = []
-timer = 0
 
 
 def main():
-    global lines, time, adj, timer, clock_text
+    global lines, clock_text, time_quanta, timer
 
     # initialising graph
     plt.axis([0, width, 0, height])
     plt.title('Team Fuffy Cats - SMR Protocol Simulation')
-
-    # starting params
 
     # create nodes
     normal_vessels = [NormalVessel() for _ in range(normal_vessels_count)]
     rouge_vessels = [RogueVessel() for _ in range(rouge_vessels_count)]
     ground_stations = [GroundStation() for _ in range(ground_stations_count)]
     all_vessels = normal_vessels + rouge_vessels + ground_stations
-
-    for node in all_vessels:
-        node.plot_node()
+    good_vessels = normal_vessels + ground_stations
 
     # adjacency list of nodes
-    adj = [[] for _ in range(n)]
-    for i in range(n):
-        for j in range(n):
+    for i in range(normal_vessels_count):
+        x1 = all_vessels[i].x
+        y1 = all_vessels[i].y
+
+        for j in range(normal_vessels_count):
             if i == j:
                 continue
 
-            x1 = all_vessels[i].x
             x2 = all_vessels[j].x
-            y1 = all_vessels[i].y
             y2 = all_vessels[j].y
             dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
 
             # for sake of simulation if the distance between two nodes
             # is less than clique_dist units then can recieve each others transmission
             if dist <= clique_dist:
-                adj[i].append(all_vessels[j])
+                normal_vessels[i].neighbours.append(normal_vessels[j])
 
-    visualise_adj(plt, all_vessels, adj)
+        for j in range(rouge_vessels_count):
+            x2 = rouge_vessels[j].x
+            y2 = rouge_vessels[j].y
+            dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
+
+            if dist <= clique_dist:
+                normal_vessels[i].ready.append(normal_vessels[j])
+
+        if normal_vessels[i].ready:
+            print(normal_vessels[i].ready)
+
+    # paint all then nodes
+    for node in all_vessels:
+        node.plot_node()
+
+    # visualise_adj(plt, normal_vessels)
 
     # this never ends
-    for i in range(99):
+    while True:
         timer += time_quanta
 
         if clock_text:
             clock_text.remove()
 
-        if lines:
-            lines.pop().remove()
-
-        lines = plt.plot([all_vessels[i].x, all_vessels[i+1].x],
-                         [all_vessels[i].y, all_vessels[i+1].y])
+        for vessel in normal_vessels:
+            vessel.broadcast()
+        for vessel in good_vessels:
+            vessel.plot_lines()
 
         clock_text = plt.text(0, 0, f'Clock: {timer}s')
 
