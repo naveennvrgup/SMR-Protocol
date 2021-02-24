@@ -13,10 +13,14 @@ def start_simula(normal_vessels, good_vessels):
     global timer, time_quanta
     clock_text = None
 
+    # for i in range(3):
     while True:
-        print(f'----------------------{timer}------------------------')
+        # print(f'----------------------{timer}------------------------')
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
-        print(f"broadcasts left: {broadcasts_left}")
+        # print(f"broadcasts left: {broadcasts_left}")
+
+        if not broadcasts_left:
+            break
 
         timer += time_quanta
 
@@ -72,10 +76,7 @@ def main():
             dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
 
             if dist <= clique_dist:
-                normal_vessels[i].ready.append(normal_vessels[j])
-
-        if normal_vessels[i].ready:
-            print(normal_vessels[i].ready)
+                normal_vessels[i].push_to_ready(rouge_vessels[j])
 
     # paint all them nodes
     for node in all_vessels:
@@ -97,5 +98,6 @@ if __name__ == "__main__":
     except Exception as err:
         print("oops something went wrong")
         traceback.print_exc()
+        exit()
     finally:
         print("Ending Simulation")
