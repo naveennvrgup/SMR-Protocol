@@ -87,10 +87,10 @@ def main():
     # visualise_mesh(plt, normal_vessels)
 
     # show the neighbours of the nodes
-    visualise_adj(plt, normal_vessels)
+    # visualise_adj(plt, normal_vessels)
 
     # this never ends
-    # start_simula(normal_vessels, good_vessels)
+    start_simula(normal_vessels, good_vessels)
 
     plt.show()
 
