@@ -2,7 +2,7 @@ from matplotlib import lines
 from matplotlib.markers import MarkerStyle
 from copy import deepcopy
 import random
-from my_constants import width, height, timer, get_color
+from my_constants import width, height, timer, get_color, packets_info
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
@@ -17,7 +17,7 @@ class Packet:
         self.color = color
 
     def __str__(self):
-        return f'{self.rouge}-{self.found_by}'
+        return f'{self.rouge}'
 
 
 class Node:
@@ -34,21 +34,13 @@ class Node:
             plt_line = self.lines.pop()
             plt_line.pop().remove()
 
-        # if a reciever get multiple signals at the same time
-        # then it will result in noise (shown by green)
-        clash_of_signals = False
-
-        if len(self.curr_signals) == 1:
-            packet = self.curr_signals[0]
-            self.recieved[str(packet)] = True
-        else:
-            clash_of_signals = True
-
         for packet in self.curr_signals:
+            # if a reciever get multiple signals at the same time
+            # then it will result in noise (shown by green)
             self.lines.append(plt.plot(
                 [self.x, packet.transmitted_by_x],
                 [self.y, packet.transmitted_by_y],
-                'g-' if clash_of_signals else packet.color))
+                'g-' if len(self.curr_signals) == 1 else packet.color))
 
         self.curr_signals = []
 
@@ -128,12 +120,16 @@ class NormalVessel(Node):
         packet.transmitted_by_y = self.y
         self.curr_broadcast = packet
 
+        if self.recieved[str(packet)]:
+            return
+
         for nei in self.neighbours:
             nei.recieve(packet)
 
         # to prevent the retransmission if the same packet
         # is recieved from the neighbour
-        self.recieved[packet] = True
+        self.recieved[str(packet)] = True
+        packets_info[str(packet)] += 1
 
     def push_to_ready(self, rogue_vessel):
         packet = Packet(

@@ -1,8 +1,8 @@
-from utils import visualise_adj
+from utils import visualise_adj, visualise_mesh
 from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
 import matplotlib.pyplot as plt
-from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer
+from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, packets_info
 from collections import defaultdict
 from tkinter import *
 import traceback
@@ -13,14 +13,15 @@ def start_simula(normal_vessels, good_vessels):
     global timer, time_quanta
     clock_text = None
 
-    # for i in range(3):
     while True:
         # print(f'----------------------{timer}------------------------')
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
-        # print(f"broadcasts left: {broadcasts_left}")
+        print(f"broadcasts left: {broadcasts_left}")
+        for packet in packets_info:
+            print(packets_info[packet], packet)
 
         if not broadcasts_left:
-            break
+            exit()
 
         timer += time_quanta
 
@@ -83,10 +84,13 @@ def main():
         node.plot_node()
 
     # for visualising the meshnet
-    # visualise_adj(plt, normal_vessels)
+    # visualise_mesh(plt, normal_vessels)
+
+    # show the neighbours of the nodes
+    visualise_adj(plt, normal_vessels)
 
     # this never ends
-    start_simula(normal_vessels, good_vessels)
+    # start_simula(normal_vessels, good_vessels)
 
     plt.show()
 
