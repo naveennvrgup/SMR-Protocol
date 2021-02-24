@@ -82,6 +82,7 @@ class NormalVessel(Node):
 
     def plot_lines(self):
         if len(self.curr_signals) == 1:
+            # pass
             # mark the curr_signal as recieved so that
             # the node doesn't retransmit the same thing
             # again and again

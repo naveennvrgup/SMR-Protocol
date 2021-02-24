@@ -29,11 +29,11 @@ def start_simula(normal_vessels, good_vessels):
             clock_text.remove()
 
         for vessel in normal_vessels:
-            vessel.broadcast()
+            vessel.broadcast() # curr_broadcast curr_signals
         for vessel in normal_vessels:
-            vessel.is_broadcast_successful()
+            vessel.is_broadcast_successful() # noise in tranmisstor side
         for vessel in good_vessels:
-            vessel.plot_lines()
+            vessel.plot_lines() # noise in reciver side + plot lines
 
         clock_text = plt.text(0, 0, f'Clock: {timer}s')
 
