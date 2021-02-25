@@ -55,10 +55,10 @@ def main():
 
     # adjacency list of nodes
     for i in range(normal_vessels_count):
+        source_vessel = normal_vessels[i]
         for j in range(normal_vessels_count):
             if i == j:
                 continue
-            source_vessel = normal_vessels[i]
             distance_from_normal_vessel = source_vessel.calculate_dist_from_vessel(normal_vessels[j])
 
             # for sake of simulation if the distance between two nodes
