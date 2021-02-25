@@ -2,7 +2,8 @@ from matplotlib import lines
 from matplotlib.markers import MarkerStyle
 from copy import deepcopy
 import random
-from my_constants import width, height, timer, get_color, packets_info
+import math
+from my_constants import width, height, timer, get_color, packets_info, clique_dist
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
@@ -24,9 +25,15 @@ class Node:
     def __init__(self) -> None:
         self.x = random.randint(2, width-2)
         self.y = random.randint(2, height-2)
-        self.recieved = defaultdict(bool)
+        self.is_broadcasted = defaultdict(bool)
         self.curr_signals = []
         self.lines = []
+
+    def calculate_dist_from_vessel(self, vessel):
+        return math.sqrt((self.x-vessel.x)**2+(self.y-vessel.y)**2)
+
+    def calculate_dist_from_packet_broadcaster(self, packet):
+        return math.sqrt((self.x-packet.transmitted_by_x)**2+(self.y-packet.transmitted_by_y)**2)
 
     def plot_lines(self):
         # deleting the previous plotted lines
@@ -35,16 +42,25 @@ class Node:
             plt_line.pop().remove()
 
         for packet in self.curr_signals:
-            # if a reciever get multiple signals at the same time
+            # if a receiver get multiple signals at the same time
             # then it will result in noise (shown by green)
-            self.lines.append(plt.plot(
-                [self.x, packet.transmitted_by_x],
-                [self.y, packet.transmitted_by_y],
-                'g-' if len(self.curr_signals) == 1 else packet.color))
+            dist = self.calculate_dist_from_packet_broadcaster(packet)
+            if dist>clique_dist:
+                # print(dist)
+                continue
+            else:
+                self.lines.append(plt.plot(
+                    [self.x, packet.transmitted_by_x],
+                    [self.y, packet.transmitted_by_y],
+                    'g-' if len(self.curr_signals) == 1 else packet.color))
 
         self.curr_signals = []
 
-    def recieve(self, packet):
+    def receive_packet(self, packet):
+        # print(self, " received ", packet)
+        if self.calculate_dist_from_packet_broadcaster(packet) > clique_dist:
+            print("distance: ", self.calculate_dist_from_packet_broadcaster(packet))
+
         self.curr_signals.append(packet)
 
     def __str__(self) -> str:
@@ -62,7 +78,7 @@ class RogueVessel(Node):
 class GroundStation(Node):
     def __init__(self) -> None:
         super().__init__()
-        self.recieved = defaultdict(bool)
+        self.is_broadcasted = defaultdict(bool)
 
     def plot_node(self):
         plt.scatter(self.x, self.y, s=30, facecolors='b')
@@ -82,32 +98,34 @@ class NormalVessel(Node):
 
     def plot_lines(self):
         if len(self.curr_signals) == 1:
-            # pass
-            # mark the curr_signal as recieved so that
+            pass
+            # mark the curr_signal as received so that
             # the node doesn't retransmit the same thing
             # again and again
             packet = self.curr_signals[0]
-            if not self.recieved[str(packet)]:
+            if not self.is_broadcasted[str(packet)]:
+                # print("ready")
                 self.ready.append(packet)
+            #     print(packet)
 
         return super().plot_lines()
 
     def is_broadcast_successful(self):
-        # broadcast is successful if no overlapping signal is recieved currently
+        # broadcast is successful if no overlapping signal is received currently
         # during transmission
 
         if not self.curr_broadcast:
             return
 
         # in case of a collision the transmitter will wait for a random
-        # amount of time before tring again. typical
+        # amount of time before trying again. typical
         # TDM collision handling like CSMA/CD
         if self.curr_signals:
             self.ready.insert(0, self.curr_broadcast)
 
             self.broadcast_cooldown = random.randint(0, 10)
 
-        # clear curent broadcast
+        # clear current broadcast
         self.curr_broadcast = None
 
     def broadcast(self):
@@ -121,15 +139,16 @@ class NormalVessel(Node):
         packet.transmitted_by_y = self.y
         self.curr_broadcast = packet
 
-        if self.recieved[str(packet)]:
+        if self.is_broadcasted[str(packet)]:
             return
 
-        for nei in self.neighbours:
-            nei.recieve(packet)
+        for neighbour in self.neighbours:
+            neighbour.receive_packet(packet)
 
         # to prevent the retransmission if the same packet
-        # is recieved from the neighbour
-        self.recieved[str(packet)] = True
+        # is broadcasted to the neighbour
+        self.is_broadcasted[str(packet)] = True
+        # print(packet, " marked")
         packets_info[str(packet)] += 1
 
     def push_to_ready(self, rogue_vessel):

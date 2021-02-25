@@ -16,9 +16,9 @@ def start_simula(normal_vessels, good_vessels):
     while True:
         # print(f'----------------------{timer}------------------------')
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
-        print(f"broadcasts left: {broadcasts_left}")
-        for packet in packets_info:
-            print(packets_info[packet], packet)
+        # print(f"broadcasts left: {broadcasts_left}")
+        # for packet in packets_info:
+        #     print(packets_info[packet], packet)
 
         if not broadcasts_left:
             exit()
@@ -55,28 +55,21 @@ def main():
 
     # adjacency list of nodes
     for i in range(normal_vessels_count):
-        x1 = all_vessels[i].x
-        y1 = all_vessels[i].y
-
         for j in range(normal_vessels_count):
             if i == j:
                 continue
-
-            x2 = all_vessels[j].x
-            y2 = all_vessels[j].y
-            dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
+            source_vessel = normal_vessels[i]
+            distance_from_normal_vessel = source_vessel.calculate_dist_from_vessel(normal_vessels[j])
 
             # for sake of simulation if the distance between two nodes
             # is less than clique_dist units then can recieve each others transmission
-            if dist <= clique_dist:
+            if distance_from_normal_vessel <= clique_dist:
                 normal_vessels[i].neighbours.append(normal_vessels[j])
 
         for j in range(rouge_vessels_count):
-            x2 = rouge_vessels[j].x
-            y2 = rouge_vessels[j].y
-            dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
+            distance_from_rouge_vessel = source_vessel.calculate_dist_from_vessel(rouge_vessels[j])
 
-            if dist <= clique_dist:
+            if distance_from_rouge_vessel <= clique_dist:
                 normal_vessels[i].push_to_ready(rouge_vessels[j])
 
     # paint all them nodes
