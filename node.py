@@ -17,7 +17,6 @@ class Packet:
         self.found_by = str(found_by)
         self.transmitted_by_x = transmitted_by.x
         self.transmitted_by_y = transmitted_by.y
-        self.transmitted_by = transmitted_by
         self.nei = [str(x) for x in transmitted_by.neighbours]
         self.color = color
 
@@ -41,11 +40,6 @@ class Node:
 
         if self.curr_signals:
             packet = self.curr_signals[0]
-            dist = math.sqrt((self.x - packet.transmitted_by_x)
-                             ** 2 + (self.y - packet.transmitted_by_y)**2)
-            # if dist > clique_dist:
-            print(
-                f'>>>>>reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
 
     def plot_lines(self):
         # deleting the previous plotted line
@@ -59,26 +53,12 @@ class Node:
                 [self.y, packet.transmitted_by_y],
                 packet.color)
 
-            # for debug
-            dist = math.sqrt((self.x - packet.transmitted_by_x)**2 +
-                             (self.y - packet.transmitted_by_y)**2)
-            # if dist > clique_dist:
-            print(
-                f'*****reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
-
     def recieve(self, packet):
         clone_pkt = Packet(packet.timestamp, packet.rouge,
                            packet.found_by, self, packet.color)
-        clone_pkt.transmitted_by = packet.transmitted_by
         clone_pkt.transmitted_by_x = packet.transmitted_by_x
         clone_pkt.transmitted_by_y = packet.transmitted_by_y
         self.curr_signals.append(clone_pkt)
-
-        # dist = math.sqrt((self.x - packet.transmitted_by_x)
-        #                  ** 2 + (self.y - packet.transmitted_by_y)**2)
-        # # if dist > clique_dist:
-        # print(
-        #     f'>>>>>reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
 
     def __str__(self) -> str:
         return f'({self.x}, {self.y})'
@@ -122,12 +102,6 @@ class NormalVessel(Node):
             if not self.recieved[str(packet)]:
                 self.ready.append(packet)
 
-            # dist = math.sqrt((self.x - packet.transmitted_by_x)**2 +
-            #                  (self.y - packet.transmitted_by_y)**2)
-            # if dist > clique_dist:
-            #     print(
-            #         f'>>>>{dist}  {packet.transmitted_by_x},{packet.transmitted_by_y} {self.x},{self.y}')
-
         return super().plot_lines()
 
     def is_broadcast_successful(self):
@@ -159,21 +133,14 @@ class NormalVessel(Node):
 
         if self.recieved[str(packet)]:
             return
-
+            
         packet.transmitted_by_x = self.x
         packet.transmitted_by_y = self.y
-        packet.transmitted_by = self
         packet.neighbours = [str(x) for x in self.neighbours]
         self.curr_broadcast = packet
 
         for nei in self.neighbours:
             nei.recieve(packet)
-
-            # dist = math.sqrt((self.x - nei.x)
-            #                  ** 2 + (self.y - nei.y)**2)
-            # if dist > clique_dist:
-            #     print(
-            #         f'>>>>{dist}  from:{self.x},{self.y} to:{nei.x},{nei.y}')
 
         # to prevent the retransmission if the same packet
         # is recieved from the neighbour

@@ -2,13 +2,13 @@ import random
 
 width = 100
 height = 100
-load_from_pickles = True
+load_from_pickles = False
 
-normal_vessels_count = 300
-rouge_vessels_count = 20
+normal_vessels_count = 400
+rouge_vessels_count = 5
 ground_stations_count = 2
 
-clique_dist = 8
+clique_dist = 10
 time_quanta = 0.1
 timer = 0
 

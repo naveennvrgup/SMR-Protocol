@@ -22,8 +22,6 @@ def start_simula(normal_vessels, good_vessels):
         print(f'----------------------{timer}------------------------')
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
         print(f"broadcasts left: {broadcasts_left}")
-        # for packet in packets_info:
-        #     print(packets_info[packet], packet)
 
         if not broadcasts_left:
             exit()
@@ -52,9 +50,6 @@ def main():
     # initialising graph
     plt.axis([0, width, 0, height])
     plt.title('Team Fuffy Cats - SMR Protocol Simulation')
-    # normal_vessels = []
-    # rouge_vessels = []
-    # ground_stations = []
 
     # create nodes
     if load_from_pickles:
@@ -129,6 +124,8 @@ def main():
     start_simula(normal_vessels, good_vessels)
 
     plt.show()
+
+
 
 
 if __name__ == "__main__":
