@@ -1,8 +1,9 @@
+from tkinter import Pack
 from matplotlib import lines
 from matplotlib.markers import MarkerStyle
 from copy import deepcopy
 import random
-from my_constants import width, height, timer, get_color, packets_info, clique_dist
+from my_constants import width, height, timer, get_color, clique_dist
 import matplotlib.pyplot as plt
 from collections import defaultdict
 import math
@@ -39,9 +40,9 @@ class Node:
             self.curr_signals = []
 
         if self.curr_signals:
-            packet=self.curr_signals[0]
+            packet = self.curr_signals[0]
             dist = math.sqrt((self.x - packet.transmitted_by_x)
-                    ** 2 + (self.y - packet.transmitted_by_y)**2)
+                             ** 2 + (self.y - packet.transmitted_by_y)**2)
             # if dist > clique_dist:
             print(
                 f'>>>>>reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
@@ -66,7 +67,12 @@ class Node:
                 f'*****reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
 
     def recieve(self, packet):
-        self.curr_signals.append(packet)
+        clone_pkt = Packet(packet.timestamp, packet.rouge,
+                           packet.found_by, self, packet.color)
+        clone_pkt.transmitted_by = packet.transmitted_by
+        clone_pkt.transmitted_by_x = packet.transmitted_by_x
+        clone_pkt.transmitted_by_y = packet.transmitted_by_y
+        self.curr_signals.append(clone_pkt)
 
         # dist = math.sqrt((self.x - packet.transmitted_by_x)
         #                  ** 2 + (self.y - packet.transmitted_by_y)**2)
@@ -172,7 +178,6 @@ class NormalVessel(Node):
         # to prevent the retransmission if the same packet
         # is recieved from the neighbour
         self.recieved[str(packet)] = True
-        packets_info[str(packet)] += 1
 
     def push_to_ready(self, rogue_vessel):
         packet = Packet(

@@ -2,7 +2,7 @@ from utils import visualise_adj, visualise_mesh
 from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
 import matplotlib.pyplot as plt
-from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, packets_info, load_from_pickles
+from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, load_from_pickles
 from collections import defaultdict
 from tkinter import *
 import traceback
@@ -36,9 +36,9 @@ def start_simula(normal_vessels, good_vessels):
         for vessel in normal_vessels:
             vessel.broadcast()  # curr_broadcast curr_signals
         for vessel in normal_vessels:
-            vessel.is_broadcast_successful()  # noise in tranmisstor side
-        for vessel in normal_vessels:
             vessel.is_recieve_successful()  # noise in reciver side
+        for vessel in normal_vessels:
+            vessel.is_broadcast_successful()  # noise in tranmisstor side
         for vessel in good_vessels:
             vessel.plot_lines()  # plot lines
 

@@ -1,5 +1,4 @@
 import random
-from collections import defaultdict
 
 width = 100
 height = 100
@@ -14,7 +13,6 @@ time_quanta = 0.1
 timer = 0
 
 colors = ['b-', 'r-', 'c-', 'm-', 'y-', 'k-']
-packets_info = defaultdict(int)
 
 
 def get_color():
