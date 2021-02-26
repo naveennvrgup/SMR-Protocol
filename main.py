@@ -19,11 +19,11 @@ def start_simula(normal_vessels, good_vessels):
     clock_text = None
 
     while True:
-        # print(f'----------------------{timer}------------------------')
+        print(f'----------------------{timer}------------------------')
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
         print(f"broadcasts left: {broadcasts_left}")
-        for packet in packets_info:
-            print(packets_info[packet], packet)
+        # for packet in packets_info:
+        #     print(packets_info[packet], packet)
 
         if not broadcasts_left:
             exit()
@@ -37,8 +37,10 @@ def start_simula(normal_vessels, good_vessels):
             vessel.broadcast()  # curr_broadcast curr_signals
         for vessel in normal_vessels:
             vessel.is_broadcast_successful()  # noise in tranmisstor side
+        for vessel in normal_vessels:
+            vessel.is_recieve_successful()  # noise in reciver side
         for vessel in good_vessels:
-            vessel.plot_lines()  # noise in reciver side + plot lines
+            vessel.plot_lines()  # plot lines
 
         clock_text = plt.text(0, 0, f'Clock: {timer}s')
 

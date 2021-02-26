@@ -2,9 +2,11 @@ from matplotlib import lines
 from matplotlib.markers import MarkerStyle
 from copy import deepcopy
 import random
-from my_constants import width, height, timer, get_color, packets_info
+from my_constants import width, height, timer, get_color, packets_info, clique_dist
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import math
+from utils import paint_debug_point
 
 
 class Packet:
@@ -14,6 +16,8 @@ class Packet:
         self.found_by = str(found_by)
         self.transmitted_by_x = transmitted_by.x
         self.transmitted_by_y = transmitted_by.y
+        self.transmitted_by = transmitted_by
+        self.nei = [str(x) for x in transmitted_by.neighbours]
         self.color = color
 
     def __str__(self):
@@ -21,31 +25,54 @@ class Packet:
 
 
 class Node:
+    line = None
+
     def __init__(self) -> None:
         self.x = random.randint(2, width-2)
         self.y = random.randint(2, height-2)
         self.recieved = defaultdict(bool)
         self.curr_signals = []
-        self.lines = []
+
+    def is_recieve_successful(self):
+        # more than one signals with result in noise
+        if len(self.curr_signals) > 1:
+            self.curr_signals = []
+
+        if self.curr_signals:
+            packet=self.curr_signals[0]
+            dist = math.sqrt((self.x - packet.transmitted_by_x)
+                    ** 2 + (self.y - packet.transmitted_by_y)**2)
+            # if dist > clique_dist:
+            print(
+                f'>>>>>reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
 
     def plot_lines(self):
-        # deleting the previous plotted lines
-        for _ in range(len(self.lines)):
-            plt_line = self.lines.pop()
-            plt_line.pop().remove()
+        # deleting the previous plotted line
+        if self.line:
+            self.line.pop().remove()
 
-        for packet in self.curr_signals:
-            # if a reciever get multiple signals at the same time
-            # then it will result in noise (shown by green)
-            self.lines.append(plt.plot(
+        if self.curr_signals:
+            packet = self.curr_signals.pop()
+            self.line = plt.plot(
                 [self.x, packet.transmitted_by_x],
                 [self.y, packet.transmitted_by_y],
-                'g-' if len(self.curr_signals) == 1 else packet.color))
+                packet.color)
 
-        self.curr_signals = []
+            # for debug
+            dist = math.sqrt((self.x - packet.transmitted_by_x)**2 +
+                             (self.y - packet.transmitted_by_y)**2)
+            # if dist > clique_dist:
+            print(
+                f'*****reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
 
     def recieve(self, packet):
         self.curr_signals.append(packet)
+
+        # dist = math.sqrt((self.x - packet.transmitted_by_x)
+        #                  ** 2 + (self.y - packet.transmitted_by_y)**2)
+        # # if dist > clique_dist:
+        # print(
+        #     f'>>>>>reciever:{self.x},{self.y} from:{packet.transmitted_by_x},{packet.transmitted_by_y} {dist}')
 
     def __str__(self) -> str:
         return f'({self.x}, {self.y})'
@@ -81,14 +108,19 @@ class NormalVessel(Node):
                     facecolors='none', edgecolors='k')
 
     def plot_lines(self):
-        if len(self.curr_signals) == 1:
-            # pass
-            # mark the curr_signal as recieved so that
-            # the node doesn't retransmit the same thing
-            # again and again
+        # mark the curr_signal as recieved so that
+        # the node doesn't retransmit the same thing
+        # again and again
+        if self.curr_signals:
             packet = self.curr_signals[0]
             if not self.recieved[str(packet)]:
                 self.ready.append(packet)
+
+            # dist = math.sqrt((self.x - packet.transmitted_by_x)**2 +
+            #                  (self.y - packet.transmitted_by_y)**2)
+            # if dist > clique_dist:
+            #     print(
+            #         f'>>>>{dist}  {packet.transmitted_by_x},{packet.transmitted_by_y} {self.x},{self.y}')
 
         return super().plot_lines()
 
@@ -109,6 +141,7 @@ class NormalVessel(Node):
 
         # clear curent broadcast
         self.curr_broadcast = None
+        self.curr_signals = []
 
     def broadcast(self):
         self.broadcast_cooldown -= 1
@@ -117,15 +150,24 @@ class NormalVessel(Node):
             return
 
         packet = self.ready.pop(0)
-        packet.transmitted_by_x = self.x
-        packet.transmitted_by_y = self.y
-        self.curr_broadcast = packet
 
         if self.recieved[str(packet)]:
             return
 
+        packet.transmitted_by_x = self.x
+        packet.transmitted_by_y = self.y
+        packet.transmitted_by = self
+        packet.neighbours = [str(x) for x in self.neighbours]
+        self.curr_broadcast = packet
+
         for nei in self.neighbours:
             nei.recieve(packet)
+
+            # dist = math.sqrt((self.x - nei.x)
+            #                  ** 2 + (self.y - nei.y)**2)
+            # if dist > clique_dist:
+            #     print(
+            #         f'>>>>{dist}  from:{self.x},{self.y} to:{nei.x},{nei.y}')
 
         # to prevent the retransmission if the same packet
         # is recieved from the neighbour

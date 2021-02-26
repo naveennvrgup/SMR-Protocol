@@ -32,3 +32,8 @@ def visualise_adj(plt, all_vessels):
             ))
 
         plt.pause(time_quanta)
+
+
+def paint_debug_point(plt, x, y):
+    point = plt.scatter(x, y, s=60, facecolors='b')
+    
