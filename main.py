@@ -2,11 +2,16 @@ from utils import visualise_adj, visualise_mesh
 from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
 import matplotlib.pyplot as plt
-from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, packets_info
+from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, packets_info, load_from_pickles
 from collections import defaultdict
 from tkinter import *
 import traceback
 import math
+import pickle
+import random
+
+# this is to fix the randomness
+random.seed(10)
 
 
 def start_simula(normal_vessels, good_vessels):
@@ -29,11 +34,11 @@ def start_simula(normal_vessels, good_vessels):
             clock_text.remove()
 
         for vessel in normal_vessels:
-            vessel.broadcast() # curr_broadcast curr_signals
+            vessel.broadcast()  # curr_broadcast curr_signals
         for vessel in normal_vessels:
-            vessel.is_broadcast_successful() # noise in tranmisstor side
+            vessel.is_broadcast_successful()  # noise in tranmisstor side
         for vessel in good_vessels:
-            vessel.plot_lines() # noise in reciver side + plot lines
+            vessel.plot_lines()  # noise in reciver side + plot lines
 
         clock_text = plt.text(0, 0, f'Clock: {timer}s')
 
@@ -45,11 +50,40 @@ def main():
     # initialising graph
     plt.axis([0, width, 0, height])
     plt.title('Team Fuffy Cats - SMR Protocol Simulation')
+    # normal_vessels = []
+    # rouge_vessels = []
+    # ground_stations = []
 
     # create nodes
-    normal_vessels = [NormalVessel() for _ in range(normal_vessels_count)]
-    rouge_vessels = [RogueVessel() for _ in range(rouge_vessels_count)]
-    ground_stations = [GroundStation() for _ in range(ground_stations_count)]
+    if load_from_pickles:
+        print('-----------------------')
+        print("loading from pickle")
+        print('-----------------------')
+        with open('data.pickle', 'rb') as f:
+            data = pickle.load(f)
+
+        normal_vessels = data['normal_vessels']
+        rouge_vessels = data['rouge_vessels']
+        ground_stations = data['ground_stations']
+    else:
+        print('-----------------------')
+        print("creating new data")
+        print('-----------------------')
+
+        normal_vessels = [NormalVessel() for _ in range(normal_vessels_count)]
+        rouge_vessels = [RogueVessel() for _ in range(rouge_vessels_count)]
+        ground_stations = [GroundStation()
+                           for _ in range(ground_stations_count)]
+
+        data = {
+            'normal_vessels': normal_vessels,
+            'rouge_vessels': rouge_vessels,
+            'ground_stations': ground_stations
+        }
+
+        with open('data.pickle', 'wb') as f:
+            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+
     all_vessels = normal_vessels + rouge_vessels + ground_stations
     good_vessels = normal_vessels + ground_stations
 

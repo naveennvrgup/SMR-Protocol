@@ -3,6 +3,7 @@ from collections import defaultdict
 
 width = 100
 height = 100
+load_from_pickles = True
 
 normal_vessels_count = 300
 rouge_vessels_count = 20
