@@ -2,7 +2,7 @@ from utils import visualise_adj, visualise_mesh
 from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
 import matplotlib.pyplot as plt
-from my_constants import width, height, normal_vessels_count, rouge_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, load_from_pickles
+from my_constants import width, height, normal_vessels_count, rogue_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, load_from_pickles
 from collections import defaultdict
 from tkinter import *
 import traceback
@@ -34,7 +34,7 @@ def start_simula(normal_vessels, good_vessels):
         for vessel in normal_vessels:
             vessel.broadcast()  # curr_broadcast curr_signals
         for vessel in normal_vessels:
-            vessel.is_recieve_successful()  # noise in reciver side
+            vessel.is_receive_successful()  # noise in reciver side
         for vessel in normal_vessels:
             vessel.is_broadcast_successful()  # noise in tranmisstor side
         for vessel in good_vessels:
@@ -60,7 +60,7 @@ def main():
             data = pickle.load(f)
 
         normal_vessels = data['normal_vessels']
-        rouge_vessels = data['rouge_vessels']
+        rogue_vessels = data['rogue_vessels']
         ground_stations = data['ground_stations']
     else:
         print('-----------------------')
@@ -68,20 +68,20 @@ def main():
         print('-----------------------')
 
         normal_vessels = [NormalVessel() for _ in range(normal_vessels_count)]
-        rouge_vessels = [RogueVessel() for _ in range(rouge_vessels_count)]
+        rogue_vessels = [RogueVessel() for _ in range(rogue_vessels_count)]
         ground_stations = [GroundStation()
                            for _ in range(ground_stations_count)]
 
         data = {
             'normal_vessels': normal_vessels,
-            'rouge_vessels': rouge_vessels,
+            'rogue_vessels': rogue_vessels,
             'ground_stations': ground_stations
         }
 
         with open('data.pickle', 'wb') as f:
             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
-    all_vessels = normal_vessels + rouge_vessels + ground_stations
+    all_vessels = normal_vessels + rogue_vessels + ground_stations
     good_vessels = normal_vessels + ground_stations
 
     # adjacency list of nodes
@@ -98,17 +98,17 @@ def main():
             dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
 
             # for sake of simulation if the distance between two nodes
-            # is less than clique_dist units then can recieve each others transmission
+            # is less than clique_dist units then can receive each others transmission
             if dist <= clique_dist:
                 normal_vessels[i].neighbours.append(normal_vessels[j])
 
-        for j in range(rouge_vessels_count):
-            x2 = rouge_vessels[j].x
-            y2 = rouge_vessels[j].y
+        for j in range(rogue_vessels_count):
+            x2 = rogue_vessels[j].x
+            y2 = rogue_vessels[j].y
             dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
 
             if dist <= clique_dist:
-                normal_vessels[i].push_to_ready(rouge_vessels[j])
+                normal_vessels[i].push_to_ready(rogue_vessels[j])
 
     # paint all them nodes
     for node in all_vessels:

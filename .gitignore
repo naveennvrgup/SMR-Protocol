@@ -1,1 +1,6 @@
+# Cache files
 **/*.pyc
+
+# Virtual environments
+venv
+env

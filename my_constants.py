@@ -5,9 +5,10 @@ height = 100
 load_from_pickles = False
 
 normal_vessels_count = 400
-rouge_vessels_count = 5
+rogue_vessels_count = 5
 ground_stations_count = 2
 
+ttl_acknowledgement = 0.1
 clique_dist = 10
 time_quanta = 0.1
 timer = 0
