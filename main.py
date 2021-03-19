@@ -51,6 +51,9 @@ def main():
     plt.axis([0, width, 0, height])
     plt.title('Team Fuffy Cats - SMR Protocol Simulation')
 
+    total_vessel_count = 0
+    total_packet_count = 0
+
     # create nodes
     if load_from_pickles:
         print('-----------------------')
@@ -67,10 +70,24 @@ def main():
         print("creating new data")
         print('-----------------------')
 
-        normal_vessels = [NormalVessel() for _ in range(normal_vessels_count)]
-        rogue_vessels = [RogueVessel() for _ in range(rogue_vessels_count)]
-        ground_stations = [GroundStation()
-                           for _ in range(ground_stations_count)]
+        normal_vessels = []
+        rogue_vessels = []
+        ground_stations = []
+
+        for _ in range(normal_vessels_count):
+            normal_vessel = NormalVessel(total_vessel_count) 
+            total_vessel_count = total_vessel_count + 1 
+            normal_vessels.append(normal_vessel)
+
+        for _ in range(rogue_vessels_count):
+            rogue_vessel = RogueVessel(total_vessel_count) 
+            total_vessel_count = total_vessel_count + 1 
+            rogue_vessels.append(rogue_vessel)
+
+        for _ in range(ground_stations_count):
+            ground_station = GroundStation(total_vessel_count) 
+            total_vessel_count = total_vessel_count + 1 
+            ground_stations.append(ground_station)
 
         data = {
             'normal_vessels': normal_vessels,
@@ -108,7 +125,9 @@ def main():
             dist = math.sqrt((x1-x2)**2+(y1-y2)**2)
 
             if dist <= clique_dist:
-                normal_vessels[i].push_to_ready(rogue_vessels[j])
+                normal_vessels[i].push_to_ready(rogue_vessels[j], total_packet_count)
+                total_packet_count = total_packet_count + 1
+
 
     # paint all them nodes
     for node in all_vessels:
