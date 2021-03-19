@@ -15,6 +15,11 @@ timer = 0
 
 colors = ['b-', 'r-', 'c-', 'm-', 'y-', 'k-']
 
+DEBUG = False
+track_packet_id = 1
+track_packet = True
+track_vessel_id = 1
+track_vessel = True
 
 def get_color():
     return random.choice(colors)
