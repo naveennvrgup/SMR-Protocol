@@ -4,3 +4,6 @@
 # Virtual environments
 venv
 env
+
+# Csv files
+vessel_data.csv
