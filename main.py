@@ -2,29 +2,38 @@ from utils import visualise_adj, visualise_mesh
 from matplotlib import lines
 from node import Node, NormalVessel, RogueVessel, GroundStation
 import matplotlib.pyplot as plt
-from my_constants import width, height, normal_vessels_count, rogue_vessels_count, ground_stations_count, clique_dist, time_quanta, timer, load_from_pickles
+from my_constants import (
+    width, 
+    height, 
+    normal_vessels_count, 
+    rogue_vessels_count, 
+    ground_stations_count, 
+    clique_dist, 
+    time_quanta,
+    time_quanta_multiplier, 
+    timer, 
+    load_from_pickles, 
+    get_color
+)
 from collections import defaultdict
 from tkinter import *
+from node import Packet
 import traceback
 import math
 import pickle
 import random
-
+import csv
 # this is to fix the randomness
 random.seed(10)
-
 
 def start_simula(normal_vessels, good_vessels):
     global timer, time_quanta
     clock_text = None
-
-    while True:
+    broadcasts_left = -1
+    while broadcasts_left!=0:
         print(f'----------------------{timer}------------------------')
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
         print(f"broadcasts left: {broadcasts_left}")
-
-        if not broadcasts_left:
-            exit()
 
         timer += time_quanta
 
@@ -142,7 +151,12 @@ def main():
     # this never ends
     start_simula(normal_vessels, good_vessels)
 
-    plt.show()
+    # Export vessel data into csv
+    vessel_csvfile = open("vessel_data.csv", "w", newline="")
+    vessel_data = csv.writer(vessel_csvfile)
+    for node in normal_vessels:
+        vessel_data.writerow(node.signal_timeline)
+    vessel_csvfile.close()
 
 
 

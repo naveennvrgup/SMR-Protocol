@@ -11,6 +11,7 @@ from my_constants import (
     get_color, 
     clique_dist,
     time_quanta,
+    time_quanta_multiplier,
     ttl_acknowledgement,
     DEBUG,
     track_packet_id,
@@ -21,6 +22,7 @@ from my_constants import (
 import matplotlib.pyplot as plt
 from collections import defaultdict
 import math
+import csv
 from utils import paint_debug_point
 
 
@@ -37,6 +39,18 @@ class Packet:
 
     def __str__(self):
         return f'Packet_{self.pk}'
+
+    def generate_vessel_list(self):
+        vessels = []
+        for sender in self.sender_list:
+            vessels.append(sender.__str__())
+        return vessels
+
+    def track_packet_location(self):
+        location = []
+        for sender in self.sender_list:
+            location.append((sender.x,sender.y))
+        return location
 
     def print_sender_locations(self):
         """
@@ -59,6 +73,7 @@ class Node:
         self.received = defaultdict(bool)
         self.curr_signals = []
         self.waiting_acknowledgement = []
+        self.signal_timeline = []
 
     def check_acknowledgement(self, packet):
         """
@@ -82,28 +97,37 @@ class Node:
                     # print(acknowledgement_packet)
                     if DEBUG and track_packet and acknowledgement_packet.pk==track_packet_id:
                         print(f"{acknowledgement_packet} ack received by {self} from {acknowledgement_packet.transmitted_by}")            
-                    continue
+                    return True
             else:
                 # If TTL has passed for a packet waiting acknowledgement, add it to ready queue
                 if sent_packet[1] <= time_quanta:
                     self.ready.append(sent_packet[0])
-                # Else, decease time by one time_quanta
+                # Else, decrease time by one time_quanta
                 else:
                     buffer_list.append((sent_packet[0],sent_packet[1]-time_quanta))
         self.waiting_acknowledgement = buffer_list
+        return False
 
     def is_receive_successful(self):
         # more than one signals with result in noise
+        is_noise = False
         if len(self.curr_signals) > 1:
+            self.signal_timeline.append(-1)
             self.curr_signals = []
+            is_noise = True
+
 
         if self.curr_signals:
             packet = self.curr_signals[0]
+            self.signal_timeline.append(packet.pk)
             # For debug purposes
             if DEBUG and track_packet and packet.pk==track_packet_id:
                 print(f"{packet} received by {self} from {packet.transmitted_by}")            
-                    
+
             self.check_acknowledgement(packet)
+
+        elif not is_noise:
+            self.signal_timeline.append(0)
 
     def plot_lines(self):
         # deleting the previous plotted line
@@ -128,6 +152,8 @@ class Node:
             sender_list = packet.sender_list
         )
         self.curr_signals.append(clone_pkt)
+        
+        return clone_pkt
 
     def __str__(self) -> str:
         return f'Vessel_{self.pk}'
@@ -208,7 +234,6 @@ class NormalVessel(Node):
             return
 
         packet = self.ready.pop(0)
-        packet.sender_list.append(self)
         
         if self.received[str(packet)]:
             return
