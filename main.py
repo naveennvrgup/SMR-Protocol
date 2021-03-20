@@ -90,7 +90,6 @@ def main(config_obj):
     total_packet_count = 0
 
     # create nodes
-    print('-----------main------------')
 
     normal_vessels = []
     rogue_vessels = []
