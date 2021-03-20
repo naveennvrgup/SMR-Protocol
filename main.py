@@ -17,19 +17,21 @@ random.seed(10)
 
 def start_simula(normal_vessels, good_vessels, config_obj):
     clock_text = None
-    df = pd.DataFrame(index=[str(x) for x in normal_vessels])
+    load_df = pd.DataFrame(index=[str(x) for x in normal_vessels])
+    packet_df = pd.DataFrame()
 
     while True:
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
         print(f'{config_obj.timer} >>> broadcasts left: {broadcasts_left}', end='\r')
 
-        observation = pd.Series(
+        load_observation = pd.Series(
             [False for x in normal_vessels],
             index=[str(x) for x in normal_vessels]
         )
+        packet_observation = defaultdict(int)
 
         if not broadcasts_left:
-            return df
+            return load_df, packet_df
 
         config_obj.timer = round(config_obj.timer + config_obj.time_quanta, 2)
 
@@ -41,11 +43,15 @@ def start_simula(normal_vessels, good_vessels, config_obj):
         for vessel in normal_vessels:
             # returns a boolean indicating a reception
             # noise in reciver side
-            observation.loc[str(vessel)] |= vessel.is_receive_successful()
+            reception, reception_packet_pk = vessel.is_receive_successful()
+            load_observation.loc[str(vessel)] |= reception
+            if reception_packet_pk is not None:
+                packet_observation[reception_packet_pk] += 1
+
         for vessel in normal_vessels:
             # returns a boolean indicating a broadcast
             # noise in tranmisstor side
-            observation.loc[str(vessel)] |= vessel.is_broadcast_successful()
+            load_observation.loc[str(vessel)] |= vessel.is_broadcast_successful()
         for vessel in good_vessels:
             vessel.plot_lines()  # plot lines
 
@@ -54,7 +60,9 @@ def start_simula(normal_vessels, good_vessels, config_obj):
         # waiting time_quanta seconds until next run
         # plt.pause(time_quanta)
 
-        df[config_obj.timer] = observation
+        load_df[config_obj.timer] = load_observation
+        packet_df[config_obj.timer] = pd.Series(packet_observation)
+    print(packet_df)
 
 
 class Config:

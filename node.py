@@ -90,19 +90,21 @@ class Node:
     def is_receive_successful(self):
         # more than one signals with result in noise
         reception = len(self.curr_signals) > 0
+        reception_packet_pk = None
 
         if len(self.curr_signals) > 1:
             self.curr_signals = []
 
         if self.curr_signals:
             packet = self.curr_signals[0]
+            reception_packet_pk = packet.pk
             # For debug purposes
             if DEBUG and track_packet and packet.pk==track_packet_id:
                 print(f"{packet} received by {self} from {packet.transmitted_by}")            
                     
             self.check_acknowledgement(packet)
         
-        return reception
+        return reception, reception_packet_pk
 
     def plot_lines(self):
         # deleting the previous plotted line
