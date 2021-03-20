@@ -5,13 +5,7 @@ from matplotlib.markers import MarkerStyle
 from copy import deepcopy
 import random
 from my_constants import (
-    width, 
-    height, 
-    timer, 
     get_color, 
-    clique_dist,
-    time_quanta,
-    ttl_acknowledgement,
     DEBUG,
     track_packet_id,
     track_packet,
@@ -52,10 +46,11 @@ class Packet:
 class Node:
     line = None
 
-    def __init__(self, total_vessel_count) -> None:
+    def __init__(self, total_vessel_count, config_obj) -> None:
+        self.config_obj = config_obj
         self.pk = total_vessel_count
-        self.x = random.randint(2, width-2)
-        self.y = random.randint(2, height-2)
+        self.x = random.randint(2, self.config_obj.width-2)
+        self.y = random.randint(2, self.config_obj.height-2)
         self.received = defaultdict(bool)
         self.curr_signals = []
         self.waiting_acknowledgement = []
@@ -85,15 +80,17 @@ class Node:
                     continue
             else:
                 # If TTL has passed for a packet waiting acknowledgement, add it to ready queue
-                if sent_packet[1] <= time_quanta:
+                if sent_packet[1] <= self.config_obj.time_quanta:
                     self.ready.append(sent_packet[0])
                 # Else, decease time by one time_quanta
                 else:
-                    buffer_list.append((sent_packet[0],sent_packet[1]-time_quanta))
+                    buffer_list.append((sent_packet[0],sent_packet[1]-self.config_obj.time_quanta))
         self.waiting_acknowledgement = buffer_list
 
     def is_receive_successful(self):
         # more than one signals with result in noise
+        reception = len(self.curr_signals) > 0
+
         if len(self.curr_signals) > 1:
             self.curr_signals = []
 
@@ -104,6 +101,8 @@ class Node:
                 print(f"{packet} received by {self} from {packet.transmitted_by}")            
                     
             self.check_acknowledgement(packet)
+        
+        return reception
 
     def plot_lines(self):
         # deleting the previous plotted line
@@ -133,9 +132,9 @@ class Node:
         return f'Vessel_{self.pk}'
 
 
-class RogueVessel(Node):
-    def __init__(self, total_vessel_count) -> None:
-        super().__init__(total_vessel_count)
+class RogueVessel(Node,):
+    def __init__(self, total_vessel_count, config_obj) -> None:
+        super().__init__(total_vessel_count, config_obj)
     
     def plot_node(self):
         plt.scatter(self.x, self.y, s=30, facecolors='r')
@@ -145,8 +144,8 @@ class RogueVessel(Node):
 
 
 class GroundStation(Node):
-    def __init__(self, total_vessel_count) -> None:
-        super().__init__(total_vessel_count)
+    def __init__(self, total_vessel_count, config_obj) -> None:
+        super().__init__(total_vessel_count, config_obj)
         self.received = defaultdict(bool)
 
     def plot_node(self):
@@ -157,8 +156,8 @@ class GroundStation(Node):
 
 
 class NormalVessel(Node):
-    def __init__(self, total_vessel_count) -> None:
-        super().__init__(total_vessel_count)
+    def __init__(self, total_vessel_count, config_obj) -> None:
+        super().__init__(total_vessel_count, config_obj)
         self.neighbours = []
         self.ready = []
         self.curr_broadcast = None
@@ -187,7 +186,7 @@ class NormalVessel(Node):
         # during transmission
 
         if not self.curr_broadcast:
-            return
+            return False
 
         # in case of a collision the transmitter will wait for a random
         # amount of time before tring again. typical
@@ -200,6 +199,7 @@ class NormalVessel(Node):
         # clear curent broadcast
         self.curr_broadcast = None
         self.curr_signals = []
+        return True
 
     def broadcast(self):
         self.broadcast_cooldown -= 1
@@ -224,7 +224,7 @@ class NormalVessel(Node):
             
             nei.receive(packet)
 
-        self.waiting_acknowledgement.append((packet,ttl_acknowledgement))    # Packet, TTL
+        self.waiting_acknowledgement.append((packet, self.config_obj.ttl_acknowledgement))    # Packet, TTL
 
         # to prevent the retransmission if the same packet
         # is received from the neighbour
@@ -233,7 +233,7 @@ class NormalVessel(Node):
     def push_to_ready(self, rogue_vessel, total_packet_count):
         packet = Packet(
             pk = total_packet_count + 1,
-            timestamp = timer,
+            timestamp = self.config_obj.timer,
             found_by = self,
             rogue = rogue_vessel,
             transmitted_by = self,

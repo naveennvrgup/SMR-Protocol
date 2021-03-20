@@ -1,5 +1,7 @@
 # Cache files
 **/*.pyc
+.ipynb_checkpoints
+vessel_data.csv
 
 # Virtual environments
 venv

@@ -1,6 +1,3 @@
-from my_constants import time_quanta
-
-
 def visualise_mesh(plt, all_vessels):
     n = len(all_vessels)
 
@@ -31,7 +28,7 @@ def visualise_adj(plt, all_vessels):
                 'blue'
             ))
 
-        plt.pause(time_quanta)
+        plt.pause(1)
 
 
 def paint_debug_point(plt, x, y):
