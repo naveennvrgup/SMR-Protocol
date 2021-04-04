@@ -8,6 +8,8 @@ def visualise_mesh(plt, all_vessels):
                 [node.x, nei.x],
                 [node.y, nei.y]
             )
+    
+    plt.show()
 
 
 def visualise_adj(plt, all_vessels):

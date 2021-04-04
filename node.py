@@ -5,7 +5,7 @@ from matplotlib.markers import MarkerStyle
 from copy import deepcopy
 import random
 from my_constants import (
-    get_color, 
+    get_color,
     DEBUG,
     track_packet_id,
     track_packet,
@@ -17,6 +17,9 @@ from collections import defaultdict
 import math
 from utils import paint_debug_point
 
+# this is to fix the randomness
+random.seed(10)
+
 
 class Packet:
     def __init__(self, pk, timestamp, rogue, found_by, transmitted_by, color, sender_list) -> None:
@@ -27,7 +30,7 @@ class Packet:
         self.transmitted_by = transmitted_by
         self.nei = [str(x) for x in transmitted_by.neighbours]
         self.color = color
-        self.sender_list = sender_list  # Will help in reducing loop transmission 
+        self.sender_list = sender_list  # Will help in reducing loop transmission
 
     def __str__(self):
         return f'Packet_{self.pk}'
@@ -73,18 +76,20 @@ class Node:
         buffer_list = []
         for sent_packet in self.waiting_acknowledgement:
             if acknowledgement_packet and sent_packet[0].rogue == acknowledgement_packet.rogue:
-                    # For debug purposes
-                    # print(acknowledgement_packet)
-                    if DEBUG and track_packet and acknowledgement_packet.pk==track_packet_id:
-                        print(f"{acknowledgement_packet} ack received by {self} from {acknowledgement_packet.transmitted_by}")            
-                    continue
+                # For debug purposes
+                # print(acknowledgement_packet)
+                if DEBUG and track_packet and acknowledgement_packet.pk == track_packet_id:
+                    print(
+                        f"{acknowledgement_packet} ack received by {self} from {acknowledgement_packet.transmitted_by}")
+                continue
             else:
                 # If TTL has passed for a packet waiting acknowledgement, add it to ready queue
                 if sent_packet[1] <= self.config_obj.time_quanta:
                     self.ready.append(sent_packet[0])
                 # Else, decease time by one time_quanta
                 else:
-                    buffer_list.append((sent_packet[0],sent_packet[1]-self.config_obj.time_quanta))
+                    buffer_list.append(
+                        (sent_packet[0], sent_packet[1]-self.config_obj.time_quanta))
         self.waiting_acknowledgement = buffer_list
 
     def is_receive_successful(self):
@@ -99,11 +104,11 @@ class Node:
             packet = self.curr_signals[0]
             reception_packet_pk = packet.pk
             # For debug purposes
-            if DEBUG and track_packet and packet.pk==track_packet_id:
-                print(f"{packet} received by {self} from {packet.transmitted_by}")            
-                    
+            if DEBUG and track_packet and packet.pk == track_packet_id:
+                print(f"{packet} received by {self} from {packet.transmitted_by}")
+
             self.check_acknowledgement(packet)
-        
+
         return reception, reception_packet_pk
 
     def plot_lines(self):
@@ -113,20 +118,21 @@ class Node:
 
         if self.curr_signals:
             packet = self.curr_signals.pop()
-            self.line = plt.plot(
-                [self.x, packet.transmitted_by.x],
-                [self.y, packet.transmitted_by.y],
-                packet.color)
+            if self.config_obj.show_graph:
+                self.line = plt.plot(
+                    [self.x, packet.transmitted_by.x],
+                    [self.y, packet.transmitted_by.y],
+                    packet.color)
 
     def receive(self, packet):
         clone_pkt = Packet(
-            pk = packet.pk,
-            timestamp = packet.timestamp, 
-            rogue = packet.rogue,
-            found_by = packet.found_by, 
-            transmitted_by = packet.transmitted_by, 
-            color = packet.color,
-            sender_list = packet.sender_list
+            pk=packet.pk,
+            timestamp=packet.timestamp,
+            rogue=packet.rogue,
+            found_by=packet.found_by,
+            transmitted_by=packet.transmitted_by,
+            color=packet.color,
+            sender_list=packet.sender_list
         )
         self.curr_signals.append(clone_pkt)
 
@@ -137,9 +143,10 @@ class Node:
 class RogueVessel(Node,):
     def __init__(self, total_vessel_count, config_obj) -> None:
         super().__init__(total_vessel_count, config_obj)
-    
+
     def plot_node(self):
-        plt.scatter(self.x, self.y, s=30, facecolors='r')
+        if self.config_obj.show_graph:
+            plt.scatter(self.x, self.y, s=30, facecolors='r')
 
     def __str__(self) -> str:
         return f'RogueVessel_{self.pk}'
@@ -151,8 +158,9 @@ class GroundStation(Node):
         self.received = defaultdict(bool)
 
     def plot_node(self):
-        plt.scatter(self.x, self.y, s=30, facecolors='b')
-    
+        if self.config_obj.show_graph:
+            plt.scatter(self.x, self.y, s=30, facecolors='b')
+
     def __str__(self) -> str:
         return f'GroundStation_{self.pk}'
 
@@ -169,8 +177,9 @@ class NormalVessel(Node):
         return f'NormalVessel_{self.pk}'
 
     def plot_node(self):
-        plt.scatter(self.x, self.y, s=30,
-                    facecolors='none', edgecolors='k')
+        if self.config_obj.show_graph:
+            plt.scatter(self.x, self.y, s=30,
+                        facecolors='none', edgecolors='k')
 
     def plot_lines(self):
         # mark the curr_signal as received so that
@@ -211,22 +220,23 @@ class NormalVessel(Node):
 
         packet = self.ready.pop(0)
         packet.sender_list.append(self)
-        
+
         if self.received[str(packet)]:
             return
-            
+
         packet.transmitted_by = self
         packet.neighbours = [str(x) for x in self.neighbours]
         self.curr_broadcast = packet
-        
+
         for nei in self.neighbours:
             # For debug purposes
-            if DEBUG and track_packet and packet.pk==track_packet_id:
-                print(f"{packet} received by {nei} from {self}")            
-            
+            if DEBUG and track_packet and packet.pk == track_packet_id:
+                print(f"{packet} received by {nei} from {self}")
+
             nei.receive(packet)
 
-        self.waiting_acknowledgement.append((packet, self.config_obj.ttl_acknowledgement))    # Packet, TTL
+        self.waiting_acknowledgement.append(
+            (packet, self.config_obj.ttl_acknowledgement))    # Packet, TTL
 
         # to prevent the retransmission if the same packet
         # is received from the neighbour
@@ -234,17 +244,17 @@ class NormalVessel(Node):
 
     def push_to_ready(self, rogue_vessel, total_packet_count):
         packet = Packet(
-            pk = total_packet_count + 1,
-            timestamp = self.config_obj.timer,
-            found_by = self,
-            rogue = rogue_vessel,
-            transmitted_by = self,
-            color = get_color(),
-            sender_list = [self, ]
+            pk=total_packet_count + 1,
+            timestamp=self.config_obj.timer,
+            found_by=self,
+            rogue=rogue_vessel,
+            transmitted_by=self,
+            color=get_color(),
+            sender_list=[self, ]
         )
-        
+
         # For debug purposes
-        if DEBUG and track_packet and packet.pk==track_packet_id:
+        if DEBUG and track_packet and packet.pk == track_packet_id:
             print(f"{packet} created by ", self)
 
         self.ready.append(packet)

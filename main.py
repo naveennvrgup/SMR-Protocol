@@ -55,10 +55,12 @@ def start_simula(normal_vessels, good_vessels, config_obj):
         for vessel in good_vessels:
             vessel.plot_lines()  # plot lines
 
-        clock_text = plt.text(0, 0, f'Clock: {config_obj.timer}s')
+        if config.show_graph:
+            clock_text = plt.text(0, 0, f'Clock: {config_obj.timer}s')
 
         # waiting time_quanta seconds until next run
-        # plt.pause(time_quanta)
+        if config.pause_every_quanta and config.show_graph:
+            plt.pause(config.time_quanta)
 
         load_df[config_obj.timer] = load_observation
         packet_df[config_obj.timer] = pd.Series(packet_observation)
@@ -76,7 +78,9 @@ class Config:
             clique_dist,
             time_quanta,
             ttl_acknowledgement,
-            timer):
+            timer,
+            pause_every_quanta,
+            show_graph):
         super().__init__()
         self.width = width
         self.height = height
@@ -87,12 +91,15 @@ class Config:
         self.time_quanta = time_quanta
         self.ttl_acknowledgement = ttl_acknowledgement
         self.timer = timer
+        self.pause_every_quanta = pause_every_quanta
+        self.show_graph = show_graph 
 
 
 def main(config_obj):
     # initialising graph
-    plt.axis([0, config_obj.width, 0, config_obj.height])
-    plt.title('Team Fuffy Cats - SMR Protocol Simulation')
+    if config_obj.show_graph:
+        plt.axis([0, config_obj.width, 0, config_obj.height])
+        plt.title('Team Fuffy Cats - SMR Protocol Simulation')
 
     total_vessel_count = 0
     total_packet_count = 0
@@ -162,13 +169,22 @@ def main(config_obj):
     # return the result dataframe
     return start_simula(normal_vessels, good_vessels, config_obj)
 
-    # plt.show()
-
 
 if __name__ == "__main__":
     try:
         print("Starting SMR Protocol Simulation")
-        main()
+        config = Config(width=100,
+                        height=100,
+                        normal_vessels_count=300,
+                        rogue_vessels_count=5,
+                        ground_stations_count=0,
+                        clique_dist=10,
+                        time_quanta=0.5,
+                        ttl_acknowledgement=0.1,
+                        timer=0,
+                        pause_every_quanta=True,
+                        show_graph=True)
+        main(config)
     except Exception as err:
         print("oops something went wrong")
         traceback.print_exc()
