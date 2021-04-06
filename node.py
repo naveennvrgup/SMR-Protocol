@@ -41,9 +41,9 @@ class Node:
         self.pk = total_vessel_count
         self.x = random.randint(2, self.config_obj.width-2)
         self.y = random.randint(2, self.config_obj.height-2)
-        self.received = defaultdict(bool)
+        self.prev_transmitted_packets = defaultdict(bool)
         self.curr_signals = []
-        self.waiting_acknowledgement = []
+
 
     def is_receive_successful(self):
         # more than one signals with result in noise
@@ -106,7 +106,6 @@ class RogueVessel(Node,):
 class GroundStation(Node):
     def __init__(self, total_vessel_count, config_obj) -> None:
         super().__init__(total_vessel_count, config_obj)
-        self.received = defaultdict(bool)
 
     def plot_node(self):
         if self.config_obj.show_graph:
@@ -134,9 +133,6 @@ class NormalVessel(Node):
                         facecolors='none', edgecolors='k')
 
     def plot_lines(self):
-        # mark the curr_signal as received so that
-        # the node doesn't retransmit the same thing
-        # again and again
         if self.curr_signals:
             packet = self.curr_signals[0]
             self.ready.append(packet)
@@ -169,7 +165,7 @@ class NormalVessel(Node):
 
         packet = self.ready.pop(0)
 
-        if self.received[str(packet)]:
+        if self.prev_transmitted_packets[str(packet)]:
             return self.fetch_packet_for_broadcast()
 
         return packet
@@ -194,12 +190,10 @@ class NormalVessel(Node):
 
             nei.receive(packet)
 
-        self.waiting_acknowledgement.append(
-            (packet, self.config_obj.ttl_acknowledgement))    # Packet, TTL
-
         # to prevent the retransmission if the same packet
         # is received from the neighbour
-        self.received[str(packet)] = True
+        self.prev_transmitted_packets[str(packet)] = True
+
 
     def push_to_ready(self, rogue_vessel, total_packet_count):
         packet = Packet(

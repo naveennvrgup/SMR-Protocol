@@ -11,10 +11,6 @@ import random
 from IPython import display
 import pandas as pd
 
-# this is to fix the randomness
-random.seed(10)
-
-
 def start_simula(normal_vessels, good_vessels, config_obj):
     clock_text = None
     load_df = pd.DataFrame(index=[str(x) for x in normal_vessels])
