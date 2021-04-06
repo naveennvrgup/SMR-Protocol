@@ -17,12 +17,10 @@ from collections import defaultdict
 import math
 from utils import paint_debug_point
 
-# this is to fix the randomness
-random.seed(10)
-
+packet_dict = defaultdict()
 
 class Packet:
-    def __init__(self, pk, timestamp, rogue, found_by, transmitted_by, color, sender_list) -> None:
+    def __init__(self, pk, timestamp, rogue, found_by, transmitted_by, color, sender_list, retransmit) -> None:
         self.pk = pk
         self.timestamp = timestamp
         self.rogue = rogue
@@ -31,6 +29,7 @@ class Packet:
         self.nei = [str(x) for x in transmitted_by.neighbours]
         self.color = color
         self.sender_list = sender_list  # Will help in reducing loop transmission
+        self.retransmit = retransmit
 
     def __str__(self):
         return f'Packet_{self.pk}'
@@ -58,40 +57,6 @@ class Node:
         self.curr_signals = []
         self.waiting_acknowledgement = []
 
-    def check_acknowledgement(self, packet):
-        """
-        Checks if this is an acknowledgement packet or not.
-        If this is acknowledgement packet : We make sure this packet is never trasnmitted again,
-        otherwise after TTL has passed, we transmit the packet again.
-        """
-
-        acknowledgement_packet = None
-        # We can either check for direct/indirect acknowledgement
-        # Direct acknowledgement : if self == packet.sender_list[-2]:
-        # Indirect acknowledgement from subsequent receiver
-        if self in packet.sender_list:
-            acknowledgement_packet = packet
-
-        # Check all packets waiting approval and update TTL
-        buffer_list = []
-        for sent_packet in self.waiting_acknowledgement:
-            if acknowledgement_packet and sent_packet[0].rogue == acknowledgement_packet.rogue:
-                # For debug purposes
-                # print(acknowledgement_packet)
-                if DEBUG and track_packet and acknowledgement_packet.pk == track_packet_id:
-                    print(
-                        f"{acknowledgement_packet} ack received by {self} from {acknowledgement_packet.transmitted_by}")
-                continue
-            else:
-                # If TTL has passed for a packet waiting acknowledgement, add it to ready queue
-                if sent_packet[1] <= self.config_obj.time_quanta:
-                    self.ready.append(sent_packet[0])
-                # Else, decease time by one time_quanta
-                else:
-                    buffer_list.append(
-                        (sent_packet[0], sent_packet[1]-self.config_obj.time_quanta))
-        self.waiting_acknowledgement = buffer_list
-
     def is_receive_successful(self):
         # more than one signals with result in noise
         reception = len(self.curr_signals) > 0
@@ -106,8 +71,6 @@ class Node:
             # For debug purposes
             if DEBUG and track_packet and packet.pk == track_packet_id:
                 print(f"{packet} received by {self} from {packet.transmitted_by}")
-
-            self.check_acknowledgement(packet)
 
         return reception, reception_packet_pk
 
@@ -132,7 +95,8 @@ class Node:
             found_by=packet.found_by,
             transmitted_by=packet.transmitted_by,
             color=packet.color,
-            sender_list=packet.sender_list
+            sender_list=packet.sender_list,
+            retransmit=packet.retransmit
         )
         self.curr_signals.append(clone_pkt)
 
@@ -172,6 +136,7 @@ class NormalVessel(Node):
         self.ready = []
         self.curr_broadcast = None
         self.broadcast_cooldown = 0
+        self.packet_ack = defaultdict(int)
 
     def __str__(self) -> str:
         return f'NormalVessel_{self.pk}'
@@ -250,8 +215,11 @@ class NormalVessel(Node):
             rogue=rogue_vessel,
             transmitted_by=self,
             color=get_color(),
-            sender_list=[self, ]
+            sender_list=[self, ],
+            retransmit = True
         )
+
+        packet_dict[packet.pk] = packet
 
         # For debug purposes
         if DEBUG and track_packet and packet.pk == track_packet_id:

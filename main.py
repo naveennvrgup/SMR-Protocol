@@ -31,7 +31,7 @@ def start_simula(normal_vessels, good_vessels, config_obj):
         packet_observation = defaultdict(int)
 
         if not broadcasts_left:
-            return load_df, packet_df
+            return load_df, packet_df, normal_vessels, plt
 
         config_obj.timer = round(config_obj.timer + config_obj.time_quanta, 2)
 
@@ -55,12 +55,12 @@ def start_simula(normal_vessels, good_vessels, config_obj):
         for vessel in good_vessels:
             vessel.plot_lines()  # plot lines
 
-        if config.show_graph:
+        if config_obj.show_graph:
             clock_text = plt.text(0, 0, f'Clock: {config_obj.timer}s')
 
         # waiting time_quanta seconds until next run
-        if config.pause_every_quanta and config.show_graph:
-            plt.pause(config.time_quanta)
+        if config_obj.pause_every_quanta and config_obj.show_graph:
+            plt.pause(config_obj.time_quanta)
 
         load_df[config_obj.timer] = load_observation
         packet_df[config_obj.timer] = pd.Series(packet_observation)
