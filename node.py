@@ -177,16 +177,25 @@ class NormalVessel(Node):
         self.curr_signals = []
         return True
 
-    def broadcast(self):
-        self.broadcast_cooldown -= 1
-
-        if not self.ready or self.broadcast_cooldown > 0:
-            return
+    def fetch_packet_for_broadcast(self):
+        if len(self.ready) == 0:
+            return None
 
         packet = self.ready.pop(0)
         packet.sender_list.append(self)
 
         if self.received[str(packet)]:
+            return self.fetch_packet_for_broadcast()
+
+        return packet
+
+    def broadcast(self):
+        self.broadcast_cooldown -= 1
+        if self.broadcast_cooldown > 0:
+            return
+
+        packet = self.fetch_packet_for_broadcast()
+        if packet is None:
             return
 
         packet.transmitted_by = self
