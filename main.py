@@ -15,6 +15,7 @@ def start_simula(normal_vessels, good_vessels, config_obj):
     clock_text = None
     load_df = pd.DataFrame(index=[str(x) for x in normal_vessels])
     packet_df = pd.DataFrame()
+    packet_mem = defaultdict(set)
 
     while True:
         broadcasts_left = sum([len(node.ready) for node in normal_vessels])
@@ -38,10 +39,13 @@ def start_simula(normal_vessels, good_vessels, config_obj):
             vessel.broadcast()  # curr_broadcast curr_signals
         for vessel in normal_vessels:
             # returns a boolean indicating a reception
-            reception, reception_packet_pk = vessel.is_receive_successful()
+            reception, reception_packet_pk, vessel_id = vessel.is_receive_successful()
             load_observation.loc[str(vessel)] |= reception
             if reception_packet_pk is not None:
-                packet_observation[reception_packet_pk] += 1
+                b4_count = len(packet_mem[reception_packet_pk]) 
+                packet_mem[reception_packet_pk].add(vessel_id)
+                after_count = len(packet_mem[reception_packet_pk]) 
+                packet_observation[reception_packet_pk] = after_count - b4_count
 
         for vessel in normal_vessels:
             # returns a boolean indicating a broadcast

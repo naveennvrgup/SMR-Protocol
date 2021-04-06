@@ -30,7 +30,7 @@ class Packet:
         self.retransmit = retransmit
 
     def __str__(self):
-        return f'Packet_{self.pk}'
+        return f'Packet_{self.pk}_{self.retransmit}'
 
 
 class Node:
@@ -54,7 +54,7 @@ class Node:
             packet = self.curr_signals[0]
             reception_packet_pk = packet.pk
 
-        return reception, reception_packet_pk
+        return reception, reception_packet_pk, self.pk
 
     def plot_lines(self):
         # deleting the previous plotted line
@@ -136,7 +136,8 @@ class NormalVessel(Node):
             # append signal to the ready queue
             if len(self.curr_signals) > 1:
                 packet = self.curr_signals[0]
-                self.ready.append(packet)
+                if packet.retransmit:
+                    self.ready.append(packet)
             else:
                 self.curr_signals = []
             return False # this bool represents if there is a broadcast on the last timestamp
@@ -146,8 +147,12 @@ class NormalVessel(Node):
         # TDM collision handling like CSMA/CD
         if self.curr_signals:
             self.ready.insert(0, self.curr_broadcast)
+            self.broadcast_cooldown = random.randint(0, 30)
+            # print("broadcast fail")
+        else:
+            self.prev_transmitted_packets[str(self.curr_broadcast)] = True
+            # print(">>>>>>>>success")
 
-            self.broadcast_cooldown = random.randint(0, 10)
 
         # clear curent broadcast
         self.curr_broadcast = None
@@ -161,6 +166,9 @@ class NormalVessel(Node):
         packet = self.ready.pop(0)
 
         if self.prev_transmitted_packets[str(packet)]:
+            # if self.retransmit:
+            #     packet.retransmit = False
+            #     self.ready.append(packet)
             return self.fetch_packet_for_broadcast()
 
         return packet
@@ -179,10 +187,6 @@ class NormalVessel(Node):
 
         for nei in self.neighbours:
             nei.receive(packet)
-
-        # to prevent the retransmission if the same packet
-        # is received from the neighbour
-        self.prev_transmitted_packets[str(packet)] = True
 
 
     def push_to_ready(self, rogue_vessel, total_packet_count):
