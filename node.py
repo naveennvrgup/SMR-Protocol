@@ -56,9 +56,6 @@ class Node:
         if self.curr_signals:
             packet = self.curr_signals[0]
             reception_packet_pk = packet.pk
-            # For debug purposes
-            if DEBUG and track_packet and packet.pk == track_packet_id:
-                print(f"{packet} received by {self} from {packet.transmitted_by}")
 
         return reception, reception_packet_pk
 
@@ -180,14 +177,9 @@ class NormalVessel(Node):
             return
 
         packet.transmitted_by = self
-        packet.neighbours = [str(x) for x in self.neighbours]
         self.curr_broadcast = packet
 
         for nei in self.neighbours:
-            # For debug purposes
-            if DEBUG and track_packet and packet.pk == track_packet_id:
-                print(f"{packet} received by {nei} from {self}")
-
             nei.receive(packet)
 
         # to prevent the retransmission if the same packet
