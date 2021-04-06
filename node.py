@@ -50,10 +50,7 @@ class Node:
         reception = len(self.curr_signals) > 0
         reception_packet_pk = None
 
-        if len(self.curr_signals) > 1:
-            self.curr_signals = []
-
-        if self.curr_signals:
+        if len(self.curr_signals) == 1:
             packet = self.curr_signals[0]
             reception_packet_pk = packet.pk
 
@@ -129,19 +126,20 @@ class NormalVessel(Node):
             plt.scatter(self.x, self.y, s=30,
                         facecolors='none', edgecolors='k')
 
-    def plot_lines(self):
-        if self.curr_signals:
-            packet = self.curr_signals[0]
-            self.ready.append(packet)
-
-        return super().plot_lines()
 
     def is_broadcast_successful(self):
         # broadcast is successful if no overlapping signal is received currently
         # during transmission
 
         if not self.curr_broadcast:
-            return False
+            # if no broadcast append and successful reception
+            # append signal to the ready queue
+            if len(self.curr_signals) > 1:
+                packet = self.curr_signals[0]
+                self.ready.append(packet)
+            else:
+                self.curr_signals = []
+            return False # this bool represents if there is a broadcast on the last timestamp
 
         # in case of a collision the transmitter will wait for a random
         # amount of time before tring again. typical
@@ -154,7 +152,7 @@ class NormalVessel(Node):
         # clear curent broadcast
         self.curr_broadcast = None
         self.curr_signals = []
-        return True
+        return True # this bool represents if there is a broadcast on the last timestamp
 
     def fetch_packet_for_broadcast(self):
         if len(self.ready) == 0:

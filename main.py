@@ -38,7 +38,6 @@ def start_simula(normal_vessels, good_vessels, config_obj):
             vessel.broadcast()  # curr_broadcast curr_signals
         for vessel in normal_vessels:
             # returns a boolean indicating a reception
-            # noise in reciver side
             reception, reception_packet_pk = vessel.is_receive_successful()
             load_observation.loc[str(vessel)] |= reception
             if reception_packet_pk is not None:
@@ -46,7 +45,6 @@ def start_simula(normal_vessels, good_vessels, config_obj):
 
         for vessel in normal_vessels:
             # returns a boolean indicating a broadcast
-            # noise in tranmisstor side
             load_observation.loc[str(vessel)] |= vessel.is_broadcast_successful()
         for vessel in good_vessels:
             vessel.plot_lines()  # plot lines
