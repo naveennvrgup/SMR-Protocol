@@ -63,8 +63,6 @@ def start_simula(normal_vessels, good_vessels, config_obj):
         load_df[config_obj.timer] = load_observation
         packet_df[config_obj.timer] = pd.Series(packet_observation)
 
-        if config_obj.show_graph:
-            plt.show()
     print(packet_df)
 
 
@@ -158,8 +156,9 @@ def main(config_obj):
                 total_packet_count = total_packet_count + 1
 
     # paint all them nodes
-    # for node in all_vessels:
-    #     node.plot_node()
+    if config_obj.show_graph:
+        for node in all_vessels:
+            node.plot_node()
 
     # for visualising the meshnet
     # visualise_mesh(plt, normal_vessels)
@@ -176,11 +175,11 @@ if __name__ == "__main__":
         print("Starting SMR Protocol Simulation")
         config = Config(width=100,
                         height=100,
-                        normal_vessels_count=300,
+                        normal_vessels_count=200,
                         rogue_vessels_count=5,
                         ground_stations_count=0,
                         clique_dist=10,
-                        time_quanta=0.5,
+                        time_quanta=0.05,
                         ttl_acknowledgement=0.1,
                         timer=0,
                         pause_every_quanta=True,

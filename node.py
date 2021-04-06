@@ -117,6 +117,7 @@ class NormalVessel(Node):
         self.curr_broadcast = None
         self.broadcast_cooldown = 0
         self.packet_ack = defaultdict(int)
+        self.packet_ack_cooldown = defaultdict(int)
 
     def __str__(self) -> str:
         return f'NormalVessel_{self.pk}'
@@ -134,10 +135,11 @@ class NormalVessel(Node):
         if not self.curr_broadcast:
             # if no broadcast append and successful reception
             # append signal to the ready queue
-            if len(self.curr_signals) > 1:
+            if len(self.curr_signals) == 1:
                 packet = self.curr_signals[0]
-                if packet.retransmit:
-                    self.ready.append(packet)
+                self.prev_transmitted_packets[str(packet)] += 1
+                # if packet.retransmit:
+                self.ready.insert(0,packet)
             else:
                 self.curr_signals = []
             return False # this bool represents if there is a broadcast on the last timestamp
@@ -147,11 +149,12 @@ class NormalVessel(Node):
         # TDM collision handling like CSMA/CD
         if self.curr_signals:
             self.ready.insert(0, self.curr_broadcast)
-            self.broadcast_cooldown = random.randint(0, 100)
-            # print("broadcast fail")
+            self.broadcast_cooldown = random.randint(0, 10)
         else:
             self.prev_transmitted_packets[str(self.curr_broadcast)] = True
-            # print(">>>>>>>>success")
+            if str(self.curr_broadcast) not in self.packet_ack: 
+                self.packet_ack[str(self.curr_broadcast)] = 0
+            self.packet_ack_cooldown[str(self.curr_broadcast)] = 10
 
 
         # clear curent broadcast
@@ -162,6 +165,14 @@ class NormalVessel(Node):
     def fetch_packet_for_broadcast(self):
         if len(self.ready) == 0:
             return None
+
+        # for pkt in self.packet_ack_cooldown:
+        #     self.packet_ack_cooldown[str(pkt)] -= 1
+        #     if self.packet_ack_cooldown[str(pkt)] == 0:
+        #         if self.packet_ack[str(pkt)] == 0:
+        #             self.packet_ack_cooldown[str(pkt)]=math.inf
+        #             self.ready.insert(0,packet_dict[str(pkt)])
+        #             self.prev_transmitted_packets[str(pkt)]=False
 
         packet = self.ready.pop(0)
 
@@ -200,5 +211,5 @@ class NormalVessel(Node):
             retransmit = True
         )
 
-        packet_dict[packet.pk] = packet
-        self.ready.append(packet)
+        packet_dict[str(packet)] = packet
+        self.ready.insert(0,packet)
