@@ -62,6 +62,9 @@ def start_simula(normal_vessels, good_vessels, config_obj):
 
         load_df[config_obj.timer] = load_observation
         packet_df[config_obj.timer] = pd.Series(packet_observation)
+
+        if config_obj.show_graph:
+            plt.show()
     print(packet_df)
 
 
@@ -155,8 +158,8 @@ def main(config_obj):
                 total_packet_count = total_packet_count + 1
 
     # paint all them nodes
-    for node in all_vessels:
-        node.plot_node()
+    # for node in all_vessels:
+    #     node.plot_node()
 
     # for visualising the meshnet
     # visualise_mesh(plt, normal_vessels)
