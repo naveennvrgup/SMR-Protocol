@@ -20,29 +20,17 @@ from utils import paint_debug_point
 packet_dict = defaultdict()
 
 class Packet:
-    def __init__(self, pk, timestamp, rogue, found_by, transmitted_by, color, sender_list, retransmit) -> None:
+    def __init__(self, pk, timestamp, rogue, found_by, transmitted_by, color, retransmit) -> None:
         self.pk = pk
         self.timestamp = timestamp
         self.rogue = rogue
         self.found_by = str(found_by)
         self.transmitted_by = transmitted_by
-        self.nei = [str(x) for x in transmitted_by.neighbours]
         self.color = color
-        self.sender_list = sender_list  # Will help in reducing loop transmission
         self.retransmit = retransmit
 
     def __str__(self):
         return f'Packet_{self.pk}'
-
-    def print_sender_locations(self):
-        """
-        For debug purposes
-        Prints locations of all the previous senders.
-        i.e locations of all the vessels through which this packet has travelled.
-        """
-        for sender in self.sender_list:
-            print(f"({sender.x}, {sender.y})->")
-        print("\n")
 
 
 class Node:
@@ -95,7 +83,6 @@ class Node:
             found_by=packet.found_by,
             transmitted_by=packet.transmitted_by,
             color=packet.color,
-            sender_list=packet.sender_list,
             retransmit=packet.retransmit
         )
         self.curr_signals.append(clone_pkt)
@@ -152,8 +139,7 @@ class NormalVessel(Node):
         # again and again
         if self.curr_signals:
             packet = self.curr_signals[0]
-            if self not in packet.sender_list:
-                self.ready.append(packet)
+            self.ready.append(packet)
 
         return super().plot_lines()
 
@@ -182,7 +168,6 @@ class NormalVessel(Node):
             return None
 
         packet = self.ready.pop(0)
-        packet.sender_list.append(self)
 
         if self.received[str(packet)]:
             return self.fetch_packet_for_broadcast()
@@ -224,14 +209,8 @@ class NormalVessel(Node):
             rogue=rogue_vessel,
             transmitted_by=self,
             color=get_color(),
-            sender_list=[self, ],
             retransmit = True
         )
 
         packet_dict[packet.pk] = packet
-
-        # For debug purposes
-        if DEBUG and track_packet and packet.pk == track_packet_id:
-            print(f"{packet} created by ", self)
-
         self.ready.append(packet)
