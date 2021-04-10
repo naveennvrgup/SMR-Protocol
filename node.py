@@ -147,7 +147,7 @@ class NormalVessel(Node):
         # TDM collision handling like CSMA/CD
         if self.curr_signals:
             self.ready.insert(0, self.curr_broadcast)
-            self.broadcast_cooldown = random.randint(0, 100)
+            self.broadcast_cooldown = random.randint(0, 50)
             # print("broadcast fail")
         else:
             self.prev_transmitted_packets[str(self.curr_broadcast)] = True
