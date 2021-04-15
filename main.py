@@ -100,7 +100,7 @@ def main(config_obj):
     # initialising graph
     if config_obj.show_graph:
         plt.axis([0, config_obj.width, 0, config_obj.height])
-        plt.title('Team Fuffy Cats - SMR Protocol Simulation')
+        plt.title('SMR Protocol Simulation')
 
     total_vessel_count = 0
     total_packet_count = 0

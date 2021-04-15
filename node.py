@@ -150,7 +150,7 @@ class NormalVessel(Node):
             self.broadcast_cooldown = random.randint(0, 50)
             # print("broadcast fail")
         else:
-            pass
+            self.prev_transmitted_packets[str(self.curr_broadcast)] = True
             # print(">>>>>>>>success")
 
 
@@ -188,7 +188,6 @@ class NormalVessel(Node):
         for nei in self.neighbours:
             nei.receive(packet)
 
-        self.prev_transmitted_packets[str(self.curr_broadcast)] = True
         
 
 
