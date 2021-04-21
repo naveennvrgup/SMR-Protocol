@@ -158,8 +158,8 @@ def main(config_obj):
                 total_packet_count = total_packet_count + 1
 
     # paint all them nodes
-    # for node in all_vessels:
-    #     node.plot_node()
+    for node in all_vessels:
+        node.plot_node()
 
     # for visualising the meshnet
     # visualise_mesh(plt, normal_vessels)
